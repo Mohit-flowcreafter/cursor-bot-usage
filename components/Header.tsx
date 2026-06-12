@@ -39,10 +39,16 @@ export function Header({
             Cursor Usage Dashboard
           </h1>
           <p className="text-xs text-muted-foreground">
-            {userName ? (
+            {userName || userEmail ? (
               <>
-                <span className="text-foreground">{userName}</span>
-                {userEmail ? ` · ${userEmail}` : ""}
+                {userName ? (
+                  <>
+                    <span className="text-foreground">{userName}</span>
+                    {userEmail ? ` · ${userEmail}` : ""}
+                  </>
+                ) : (
+                  <span className="text-foreground">{userEmail}</span>
+                )}
                 {" · "}
               </>
             ) : null}
