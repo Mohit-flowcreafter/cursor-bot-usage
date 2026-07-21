@@ -17,11 +17,30 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+const SESSION_COOKIE_NAME = "WorkosCursorSessionToken";
+
 export function cursorCookie(): string | null {
-  const token = process.env.CURSOR_SESSION_TOKEN?.trim();
-  if (!token) return null;
-  if (token.includes("=")) return token;
-  return `WorkosCursorSessionToken=${token}`;
+  const raw = process.env.CURSOR_SESSION_TOKEN?.trim();
+  if (!raw) return null;
+
+  // Accept any of: the bare token value, "WorkosCursorSessionToken=<value>",
+  // or an entire document.cookie string with extra cookies appended.
+  const segments = raw.split(";").map((s) => s.trim());
+  const named = segments.find((s) => s.startsWith(`${SESSION_COOKIE_NAME}=`));
+  let value = named
+    ? named.slice(SESSION_COOKIE_NAME.length + 1)
+    : segments[0];
+
+  // Some browsers copy the value URL-encoded (e.g. "::" -> "%3A%3A").
+  if (value.includes("%3A")) {
+    try {
+      value = decodeURIComponent(value);
+    } catch {
+      // Leave as-is if it isn't valid percent-encoding.
+    }
+  }
+
+  return `${SESSION_COOKIE_NAME}=${value}`;
 }
 
 export function requireCursorCookie(): string {
